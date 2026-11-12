@@ -1,0 +1,12 @@
+// Cấu hình triển khai lên Cloudflare (Workers Static Assets — chỉ phục vụ file tĩnh,
+// không có mã máy chủ nên không tốn lượt Worker và không giới hạn lượt truy cập ở gói miễn phí).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "english-teaching-web",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./out",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+}

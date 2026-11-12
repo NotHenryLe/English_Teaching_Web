@@ -1,0 +1,81 @@
+# Supabase cục bộ tối giản để phát triển và chạy test (Postgres + Auth + REST + Storage).
+# Dùng: npm run local:up   → API tại http://127.0.0.1:54321
+# KHÔNG dùng cho production: khóa và mật khẩu ở đây là giá trị demo công khai.
+name: etw-supabase-local
+services:
+  db:
+    image: supabase/postgres:17.11.0.019
+    environment:
+      POSTGRES_PASSWORD: postgres
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXP: 3600
+    ports: ["54322:5432"]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+  auth:
+    image: supabase/gotrue:v2.197.0
+    depends_on: { db: { condition: service_healthy } }
+    restart: on-failure
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: http://127.0.0.1:54321/auth/v1
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:postgres@db:5432/postgres
+      GOTRUE_SITE_URL: ${SITE_URL}
+      GOTRUE_URI_ALLOW_LIST: ${SITE_URL}/**
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: ${MAILER_AUTOCONFIRM}
+      GOTRUE_SMTP_HOST: ${SMTP_HOST}
+      GOTRUE_SMTP_PORT: ${SMTP_PORT}
+      GOTRUE_SMTP_ADMIN_EMAIL: no-reply@example.test
+      GOTRUE_SMTP_SENDER_NAME: Local Supabase
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /verify
+      GOTRUE_MAILER_URLPATHS_INVITE: /verify
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /verify
+      GOTRUE_RATE_LIMIT_EMAIL_SENT: 1000
+    extra_hosts: ["host.docker.internal:host-gateway"]
+  rest:
+    image: postgrest/postgrest:v12.2.12
+    depends_on: { db: { condition: service_healthy } }
+    restart: on-failure
+    environment:
+      PGRST_DB_URI: postgres://authenticator:postgres@db:5432/postgres
+      PGRST_DB_SCHEMAS: public,storage
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+  storage:
+    image: supabase/storage-api:v1.94.0
+    depends_on: { db: { condition: service_healthy }, rest: { condition: service_started } }
+    restart: on-failure
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      AUTH_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://supabase_storage_admin:postgres@db:5432/postgres
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: stub
+      GLOBAL_S3_BUCKET: stub
+      ENABLE_IMAGE_TRANSFORMATION: "false"
+  gateway:
+    image: supabase/storage-api:v1.94.0   # tái dùng image có sẵn Node.js để chạy proxy nhỏ
+    depends_on: [auth, rest, storage]
+    entrypoint: ["node", "/gateway.mjs"]
+    volumes: ["./gateway.mjs:/gateway.mjs:ro"]
+    ports: ["54321:8000"]
