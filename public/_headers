@@ -1,0 +1,15 @@
+# Header do Cloudflare gắn vào phản hồi (file này không được phục vụ ra ngoài).
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), geolocation=(), payment=()
+
+# File có mã băm trong tên: nội dung không bao giờ đổi nên cho trình duyệt lưu lâu dài.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Service worker phải luôn được kiểm tra bản mới.
+/sw.js
+  Cache-Control: no-cache

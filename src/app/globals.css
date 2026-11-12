@@ -1,0 +1,280 @@
+@import "tailwindcss";
+
+/* Bảng màu: nền giấy ấm, mực xanh đậm, điểm nhấn vàng nắng — gợi cảm giác cuốn vở học. */
+@theme {
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-paper: #fbf8f3;
+  --color-ink: #18212f;
+  --color-muted: #5b6577;
+  --color-line: #e6e1d8;
+
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #dfe6ff;
+  --color-brand-200: #c2cffd;
+  --color-brand-500: #3b5ee0;
+  --color-brand-600: #2647c8;
+  --color-brand-700: #1e38a3;
+  --color-brand-800: #182c7d;
+  --color-brand-900: #121f57;
+
+  --color-sun-50: #fff8e8;
+  --color-sun-100: #ffefc7;
+  --color-sun-300: #fbd06b;
+  --color-sun-400: #f7b93a;
+  --color-sun-500: #f0a012;
+  --color-sun-700: #a5660a;
+
+  --color-good-50: #e9f7ee;
+  --color-good-600: #17803d;
+  --color-good-700: #12652f;
+  --color-bad-50: #fdeeea;
+  --color-bad-600: #c2341d;
+  --color-bad-700: #9c2814;
+
+  --radius-card: 1.25rem;
+}
+
+html {
+  color-scheme: light;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01";
+  text-rendering: optimizeLegibility;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-sun-400);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+::selection {
+  background: var(--color-sun-300);
+  color: var(--color-ink);
+}
+
+@layer components {
+  .container-page {
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 640px) {
+    .container-page {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  .card {
+    background: #fff;
+    border: 1.5px solid var(--color-line);
+    border-radius: var(--radius-card);
+    box-shadow: 0 3px 0 var(--color-line);
+  }
+
+  /* Nút "dày" có viền đáy, bấm xuống thì lún — thân thiện với người học. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 1.1rem;
+    border-radius: 0.9rem;
+    border: 1.5px solid transparent;
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    cursor: pointer;
+    user-select: none;
+    transition:
+      transform 80ms ease,
+      box-shadow 80ms ease,
+      background-color 120ms ease;
+  }
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--color-brand-600);
+    color: #fff;
+    box-shadow: 0 3px 0 var(--color-brand-800);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-brand-500);
+  }
+  .btn-sun {
+    background: var(--color-sun-400);
+    color: var(--color-ink);
+    box-shadow: 0 3px 0 var(--color-sun-700);
+  }
+  .btn-sun:hover:not(:disabled) {
+    background: var(--color-sun-300);
+  }
+  .btn-outline {
+    background: #fff;
+    color: var(--color-ink);
+    border-color: var(--color-line);
+    box-shadow: 0 3px 0 var(--color-line);
+  }
+  .btn-outline:hover:not(:disabled) {
+    background: var(--color-brand-50);
+    border-color: var(--color-brand-200);
+  }
+  .btn-danger {
+    background: #fff;
+    color: var(--color-bad-700);
+    border-color: #f3c9c0;
+    box-shadow: 0 3px 0 #f3c9c0;
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: var(--color-bad-50);
+  }
+  .btn-primary:active:not(:disabled),
+  .btn-sun:active:not(:disabled),
+  .btn-outline:active:not(:disabled),
+  .btn-danger:active:not(:disabled) {
+    transform: translateY(3px);
+    box-shadow: none;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-ink);
+    min-height: 2.5rem;
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: rgb(24 33 47 / 0.06);
+  }
+  .btn-sm {
+    min-height: 2.25rem;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.85rem;
+    border-radius: 0.7rem;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+  }
+  .field-hint {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+    margin-top: 0.3rem;
+  }
+  .input {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.55rem 0.85rem;
+    background: #fff;
+    border: 1.5px solid var(--color-line);
+    border-radius: 0.8rem;
+    font-size: 1rem;
+    line-height: 1.4;
+    color: var(--color-ink);
+    transition: border-color 120ms ease;
+  }
+  .input::placeholder {
+    color: #9aa2b1;
+  }
+  .input:hover {
+    border-color: #d3ccbf;
+  }
+  .input:focus {
+    outline: none;
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 3px var(--color-brand-100);
+  }
+  textarea.input {
+    min-height: 6rem;
+    resize: vertical;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--color-brand-50);
+    color: var(--color-brand-700);
+    white-space: nowrap;
+  }
+  .chip-sun {
+    background: var(--color-sun-100);
+    color: var(--color-sun-700);
+  }
+  .chip-good {
+    background: var(--color-good-50);
+    color: var(--color-good-700);
+  }
+  .chip-bad {
+    background: var(--color-bad-50);
+    color: var(--color-bad-700);
+  }
+  .chip-gray {
+    background: #f1eee8;
+    color: var(--color-muted);
+  }
+
+  .ipa {
+    font-family: "Charis SIL", "Doulos SIL", "Gentium Plus", "Segoe UI", "Lucida Sans Unicode", "Noto Sans", sans-serif;
+    color: var(--color-muted);
+  }
+
+  .prose-lesson p + p {
+    margin-top: 0.75rem;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1.5px solid var(--color-line);
+    border-radius: 1rem;
+    background: #fff;
+  }
+  .table-wrap table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  .table-wrap th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-muted);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.7rem 0.9rem;
+    background: #faf7f1;
+    white-space: nowrap;
+  }
+  .table-wrap td {
+    padding: 0.7rem 0.9rem;
+    border-top: 1px solid var(--color-line);
+    vertical-align: top;
+  }
+}
