@@ -130,6 +130,17 @@ export function Notice({ kind = "info", children }: { kind?: "info" | "good" | "
   );
 }
 
+/** Hiện với giáo viên / admin khi họ xem trước một bài chưa xuất bản. */
+export function DraftBanner() {
+  return (
+    <div className="mb-4">
+      <Notice kind="warn">
+        <strong>Bản nháp.</strong> Chỉ giáo viên và quản trị viên thấy trang này. Hãy bật “Xuất bản” trong trang quản trị để người học nhìn thấy.
+      </Notice>
+    </div>
+  );
+}
+
 export function Field({
   label,
   hint,

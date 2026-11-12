@@ -85,7 +85,21 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfileFor(userId);
       },
       signOut: async () => {
-        await getSupabase()?.auth.signOut();
+        // "local": chỉ đăng xuất thiết bị này, các thiết bị khác của người dùng vẫn giữ phiên.
+        const result = await getSupabase()?.auth.signOut({ scope: "local" });
+        if (result?.error) {
+          // Mất mạng thì thư viện giữ nguyên phiên trong máy. Trên máy dùng chung như vậy là không an toàn,
+          // nên tự xóa phiên đã lưu rồi tải lại trang để chắc chắn đã thoát.
+          try {
+            for (const key of Object.keys(window.localStorage)) {
+              if (/^sb-.+-auth-token/.test(key)) window.localStorage.removeItem(key);
+            }
+          } catch {
+            // localStorage bị chặn: không có phiên nào được lưu để xóa.
+          }
+          window.location.assign("/");
+          return;
+        }
         setUser(null);
         setProfile(null);
       },
@@ -107,12 +121,23 @@ export function useContact(): ContactSettings {
   return value;
 }
 
-/** Nội dung in sẵn lúc build + làm mới từ Supabase khi trang mở (để thấy chỉnh sửa mới nhất). */
+/**
+ * Nội dung in sẵn lúc build + làm mới từ Supabase khi trang mở (để thấy chỉnh sửa mới nhất).
+ *  - fresh:   dữ liệu đang hiển thị vừa lấy từ database
+ *  - settled: đã thử lấy xong (thành công hoặc thất bại) — dùng để phân biệt "đang tải" với "không có"
+ */
 export function useLive<T>(initial: T, fetcher: (db: NonNullable<ReturnType<typeof getSupabase>>) => Promise<T>, key: string) {
-  const [state, setState] = useState<{ key: string; data: T; fresh: boolean }>({ key, data: initial, fresh: false });
+  const [state, setState] = useState<{ key: string; data: T; fresh: boolean; settled: boolean }>({
+    key,
+    data: initial,
+    fresh: false,
+    settled: !isSupabaseConfigured,
+  });
   const fetcherRef = useRef(fetcher);
+  const initialRef = useRef(initial);
   useEffect(() => {
     fetcherRef.current = fetcher;
+    initialRef.current = initial;
   });
 
   useEffect(() => {
@@ -122,17 +147,18 @@ export function useLive<T>(initial: T, fetcher: (db: NonNullable<ReturnType<type
     fetcherRef
       .current(db)
       .then((data) => {
-        if (!cancelled) setState({ key, data, fresh: true });
+        if (!cancelled) setState({ key, data, fresh: true, settled: true });
       })
       .catch(() => {
         // Mất mạng hoặc Supabase tạm dừng: giữ nội dung đã in sẵn.
+        if (!cancelled) setState({ key, data: initialRef.current, fresh: false, settled: true });
       });
     return () => {
       cancelled = true;
     };
   }, [key]);
 
-  return state.key === key ? { data: state.data, fresh: state.fresh } : { data: initial, fresh: false };
+  return state.key === key ? state : { key, data: initial, fresh: false, settled: !isSupabaseConfigured };
 }
 
 // ---------------------------------------------------------------------------

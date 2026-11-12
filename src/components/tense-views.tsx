@@ -9,7 +9,7 @@ import { describeError, getSupabase } from "@/lib/supabase";
 import type { Tense, TenseExercise, TenseWithExercises, TimeGroup } from "@/lib/types";
 import { useAuth, useLive } from "./providers";
 import { SpeechSettings } from "./speech-settings";
-import { Breadcrumb, EmptyState, Notice, PageHeader, SpeakButton, cx } from "./ui";
+import { Breadcrumb, DraftBanner, EmptyState, Notice, PageHeader, SpeakButton, cx } from "./ui";
 
 const GROUPS: { id: TimeGroup; label: string; tone: string }[] = [
   { id: "present", label: "Hiện tại", tone: "bg-brand-600" },
@@ -60,11 +60,11 @@ export function TenseLessonView({
   initial: TenseWithExercises | null;
   siblings: { slug: string; name_vi: string }[];
 }) {
-  const { data: tense, fresh } = useLive(initial, (db) => fetchTense(db, slug), `tense:${slug}`);
+  const { data: tense, settled } = useLive(initial, (db) => fetchTense(db, slug), `tense:${slug}`);
 
   if (!tense) {
     return (
-      <EmptyState title={fresh || initial === null ? "Không tìm thấy bài học này" : "Đang tải…"}>
+      <EmptyState title={settled ? "Không tìm thấy bài học này" : "Đang tải…"}>
         <Link href="/ngu-phap" className="font-semibold text-brand-700 hover:underline">
           ← Xem 12 thì
         </Link>
@@ -79,6 +79,7 @@ export function TenseLessonView({
   return (
     <article className="mx-auto max-w-3xl">
       <Breadcrumb items={[{ href: "/ngu-phap", label: "Ngữ pháp" }, { label: tense.name_vi }]} />
+      {!tense.published ? <DraftBanner /> : null}
       <PageHeader eyebrow={tense.name_en} title={`Thì ${tense.name_vi}`} description={tense.summary_vi} />
       <SpeechSettings className="mb-8" />
 

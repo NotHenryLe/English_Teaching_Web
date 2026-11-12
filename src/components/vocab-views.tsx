@@ -7,7 +7,7 @@ import { fetchVocabTopic, fetchVocabTopics } from "@/lib/queries";
 import type { VocabTopic, VocabTopicWithWords, VocabWord } from "@/lib/types";
 import { useLive } from "./providers";
 import { SpeechSettings } from "./speech-settings";
-import { Breadcrumb, EmptyState, PageHeader, SpeakButton, cx } from "./ui";
+import { Breadcrumb, DraftBanner, EmptyState, PageHeader, SpeakButton, cx } from "./ui";
 
 export function VocabTopicList({ initial }: { initial: VocabTopic[] }) {
   const { data: topics } = useLive(initial, fetchVocabTopics, "vocab-topics");
@@ -35,12 +35,12 @@ export function VocabTopicList({ initial }: { initial: VocabTopic[] }) {
 type Mode = "list" | "cards" | "quiz";
 
 export function VocabTopicView({ slug, initial }: { slug: string; initial: VocabTopicWithWords | null }) {
-  const { data: topic, fresh } = useLive(initial, (db) => fetchVocabTopic(db, slug), `vocab-topic:${slug}`);
+  const { data: topic, settled } = useLive(initial, (db) => fetchVocabTopic(db, slug), `vocab-topic:${slug}`);
   const [mode, setMode] = useState<Mode>("list");
 
   if (!topic) {
     return (
-      <EmptyState title={fresh || initial === null ? "Không tìm thấy chủ đề này" : "Đang tải…"}>
+      <EmptyState title={settled ? "Không tìm thấy chủ đề này" : "Đang tải…"}>
         <Link href="/tu-vung" className="font-semibold text-brand-700 hover:underline">
           ← Xem tất cả chủ đề
         </Link>
@@ -57,6 +57,7 @@ export function VocabTopicView({ slug, initial }: { slug: string; initial: Vocab
   return (
     <>
       <Breadcrumb items={[{ href: "/tu-vung", label: "Từ vựng" }, { label: topic.title_vi }]} />
+      {!topic.published ? <DraftBanner /> : null}
       <PageHeader title={`${topic.icon} ${topic.title_vi}`} description={topic.description_vi}>
         <p className="mt-1 text-muted">
           {topic.title_en} · {topic.words.length} từ

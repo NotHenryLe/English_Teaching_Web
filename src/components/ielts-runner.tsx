@@ -11,7 +11,7 @@ import { describeError, getSupabase } from "@/lib/supabase";
 import type { IeltsAnswerKey, IeltsGroup, IeltsQuestion, IeltsResult, IeltsSection, IeltsTest } from "@/lib/types";
 import { useAuth, useLive, useSpeech } from "./providers";
 import { SpeechSettings } from "./speech-settings";
-import { Breadcrumb, EmptyState, Modal, Notice, cx, safeUrl } from "./ui";
+import { Breadcrumb, DraftBanner, EmptyState, Modal, Notice, cx, safeUrl } from "./ui";
 
 type Answers = Record<string, string>;
 type Phase = "intro" | "running" | "result";
@@ -34,7 +34,7 @@ function readProgress(testId: string): SavedProgress | null {
 }
 
 export function IeltsRunner({ slug, initial, demoKey }: { slug: string; initial: IeltsTest | null; demoKey: IeltsAnswerKey | null }) {
-  const { data: live, fresh } = useLive(initial, (db) => fetchIeltsTest(db, slug), `ielts:${slug}`);
+  const { data: live, settled } = useLive(initial, (db) => fetchIeltsTest(db, slug), `ielts:${slug}`);
   const { user } = useAuth();
   // Giữ nguyên bản đề từ lúc bắt đầu làm, kể cả khi nội dung được làm mới ở nền.
   const [frozen, setFrozen] = useState<IeltsTest | null>(null);
@@ -139,7 +139,7 @@ export function IeltsRunner({ slug, initial, demoKey }: { slug: string; initial:
   if (!test) {
     return (
       <div className="container-page py-10">
-        <EmptyState title={fresh || initial === null ? "Không tìm thấy đề thi này" : "Đang tải…"}>
+        <EmptyState title={settled ? "Không tìm thấy đề thi này" : "Đang tải…"}>
           <Link href="/ielts" className="font-semibold text-brand-700 hover:underline">
             ← Xem tất cả đề thi
           </Link>
@@ -152,6 +152,7 @@ export function IeltsRunner({ slug, initial, demoKey }: { slug: string; initial:
     return (
       <div className="container-page max-w-3xl py-10">
         <Breadcrumb items={[{ href: "/ielts", label: "IELTS" }, { label: test.title }]} />
+        {!test.published ? <DraftBanner /> : null}
         <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-brand-600">IELTS {SKILL_LABEL[test.skill]}</p>
         <h1 lang="en" className="text-3xl font-extrabold tracking-tight sm:text-4xl">
           {test.title}

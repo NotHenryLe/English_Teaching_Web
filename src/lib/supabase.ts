@@ -51,6 +51,8 @@ export function describeError(error: unknown): string {
   if (/Email not confirmed/i.test(message)) return "Email chưa được xác nhận. Hãy mở thư xác nhận trong hộp thư của bạn.";
   if (/User already registered/i.test(message)) return "Email này đã có tài khoản. Hãy đăng nhập.";
   if (/Password should be at least/i.test(message)) return "Mật khẩu quá ngắn (tối thiểu 8 ký tự).";
+  const wait = message.match(/only request this after (\d+) seconds/i);
+  if (wait) return `Bạn vừa yêu cầu gửi email. Vui lòng chờ ${wait[1]} giây rồi thử lại.`;
   if (/rate limit|too many requests/i.test(message) || raw?.status === 429) {
     return "Bạn thao tác quá nhanh. Hãy chờ một lát rồi thử lại.";
   }

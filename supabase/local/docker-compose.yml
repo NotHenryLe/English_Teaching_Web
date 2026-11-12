@@ -22,7 +22,7 @@ services:
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
-      API_EXTERNAL_URL: http://127.0.0.1:54321/auth/v1
+      API_EXTERNAL_URL: http://127.0.0.1:54321
       GOTRUE_DB_DRIVER: postgres
       GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:postgres@db:5432/postgres
       GOTRUE_SITE_URL: ${SITE_URL}
@@ -39,11 +39,12 @@ services:
       GOTRUE_SMTP_PORT: ${SMTP_PORT}
       GOTRUE_SMTP_ADMIN_EMAIL: no-reply@example.test
       GOTRUE_SMTP_SENDER_NAME: Local Supabase
-      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /verify
-      GOTRUE_MAILER_URLPATHS_RECOVERY: /verify
-      GOTRUE_MAILER_URLPATHS_INVITE: /verify
-      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /verify
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
       GOTRUE_RATE_LIMIT_EMAIL_SENT: 1000
+      GOTRUE_SMTP_MAX_FREQUENCY: 1s   # production mặc định 60s giữa hai email tới cùng một địa chỉ
   rest:
     image: postgrest/postgrest:v12.2.12
     depends_on: { db: { condition: service_healthy } }

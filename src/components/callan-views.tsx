@@ -205,7 +205,7 @@ function RegistrationForm({ packages, onDone, hasHistory }: { packages: CallanPa
 
   return (
     <form onSubmit={submit} className="card grid gap-4 p-5 sm:p-6" noValidate>
-      <p className="text-lg font-bold">{hasHistory ? "Đăng ký thêm gói học" : "Phiếu đăng ký"}</p>
+      <h3 className="text-lg font-bold">{hasHistory ? "Đăng ký thêm gói học" : "Phiếu đăng ký"}</h3>
       <fieldset>
         <legend className="field-label">Chọn gói học</legend>
         <div className="grid gap-2 sm:grid-cols-2">
@@ -323,7 +323,7 @@ function MyCallanPanel({ data, reload }: { data: MyCallan; reload: () => Promise
   );
 }
 
-export function ClassCard({ klass, children }: { klass: CallanClass; children?: React.ReactNode }) {
+export function ClassCard({ klass, children, heading = "Lớp của bạn" }: { klass: CallanClass; children?: React.ReactNode; heading?: string }) {
   // Mốc "bây giờ" lấy một lần khi thẻ hiện ra — đủ chính xác để tách buổi sắp tới / đã qua.
   const [now] = useState(() => Date.now());
   const sessions = klass.callan_sessions ?? [];
@@ -336,7 +336,7 @@ export function ClassCard({ klass, children }: { klass: CallanClass; children?: 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="flex items-center gap-2 text-sm font-semibold text-good-700">
-            <CheckCircle2 size={16} aria-hidden /> Lớp của bạn
+            <CheckCircle2 size={16} aria-hidden /> {heading}
           </p>
           <h3 className="mt-1 text-xl font-bold">{klass.name}</h3>
           <p className="mt-1 text-sm text-muted">

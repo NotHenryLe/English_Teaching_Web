@@ -27,6 +27,8 @@ export async function fetchVocabTopics(db: SupabaseClient): Promise<VocabTopic[]
   return rows.map(({ vocab_words, ...topic }) => ({ ...topic, word_count: vocab_words?.[0]?.count ?? 0 }));
 }
 
+// Các truy vấn "một mục theo slug" không lọc published: RLS chỉ trả bản nháp cho giáo viên / admin,
+// nhờ vậy người soạn xem trước được bài chưa xuất bản ngay tại đường dẫn công khai.
 export async function fetchVocabTopic(db: SupabaseClient, slug: string): Promise<VocabTopicWithWords | null> {
   type Row = VocabTopic & { vocab_words: VocabTopicWithWords["words"] };
   const row = unwrap<Row | null>(
@@ -34,7 +36,6 @@ export async function fetchVocabTopic(db: SupabaseClient, slug: string): Promise
       .from("vocab_topics")
       .select("*, vocab_words(*)")
       .eq("slug", slug)
-      .eq("published", true)
       .order("sort_order", { referencedTable: "vocab_words" })
       .maybeSingle(),
   );
@@ -54,7 +55,6 @@ export async function fetchTense(db: SupabaseClient, slug: string): Promise<Tens
       .from("tenses")
       .select("*, tense_exercises(*)")
       .eq("slug", slug)
-      .eq("published", true)
       .order("sort_order", { referencedTable: "tense_exercises" })
       .maybeSingle(),
   );
@@ -73,7 +73,7 @@ export async function fetchIeltsTests(db: SupabaseClient): Promise<IeltsTestSumm
 
 export async function fetchIeltsTest(db: SupabaseClient, slug: string): Promise<IeltsTest | null> {
   return unwrap<IeltsTest | null>(
-    await db.from("ielts_tests").select(`${IELTS_SUMMARY}, content`).eq("slug", slug).eq("published", true).maybeSingle(),
+    await db.from("ielts_tests").select(`${IELTS_SUMMARY}, content`).eq("slug", slug).maybeSingle(),
   );
 }
 
