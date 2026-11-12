@@ -30,11 +30,7 @@ import { EMPTY_CONTACT } from "./types";
 
 const warned = new Set<string>();
 
-async function fromDatabase<T>(label: string, query: Parameters<typeof run>[1]): Promise<T | undefined> {
-  return run<T>(label, query);
-}
-
-async function run<T>(
+async function fromDatabase<T>(
   label: string,
   query: (db: NonNullable<ReturnType<typeof getSupabase>>) => Promise<T>,
 ): Promise<T | undefined> {

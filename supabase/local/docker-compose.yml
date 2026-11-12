@@ -17,7 +17,7 @@ services:
       retries: 40
   auth:
     image: supabase/gotrue:v2.197.0
-    depends_on: { db: { condition: service_healthy } }
+    depends_on: { db: { condition: service_healthy }, mail: { condition: service_started } }
     restart: on-failure
     environment:
       GOTRUE_API_HOST: 0.0.0.0
@@ -44,7 +44,6 @@ services:
       GOTRUE_MAILER_URLPATHS_INVITE: /verify
       GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /verify
       GOTRUE_RATE_LIMIT_EMAIL_SENT: 1000
-    extra_hosts: ["host.docker.internal:host-gateway"]
   rest:
     image: postgrest/postgrest:v12.2.12
     depends_on: { db: { condition: service_healthy } }
@@ -73,6 +72,12 @@ services:
       REGION: stub
       GLOBAL_S3_BUCKET: stub
       ENABLE_IMAGE_TRANSFORMATION: "false"
+  mail:
+    # Hộp thư giả: nhận email xác thực / đặt lại mật khẩu và lưu vào supabase/local/.mail/
+    image: supabase/storage-api:v1.94.0   # tái dùng image có sẵn Node.js
+    user: "0:0"
+    entrypoint: ["node", "/mail-sink.mjs"]
+    volumes: ["./mail-sink.mjs:/mail-sink.mjs:ro", "./.mail:/.mail"]
   gateway:
     image: supabase/storage-api:v1.94.0   # tái dùng image có sẵn Node.js để chạy proxy nhỏ
     depends_on: [auth, rest, storage]

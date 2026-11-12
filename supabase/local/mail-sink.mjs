@@ -1,5 +1,5 @@
-// Máy chủ SMTP giả: nhận email xác thực / đặt lại mật khẩu từ Auth cục bộ và lưu ra thư mục .mail/
-// để test đọc đường link trong email. Không gửi email thật.
+// Máy chủ SMTP giả (chạy như một service trong docker-compose): nhận email xác thực / đặt lại mật khẩu
+// từ Auth cục bộ và lưu ra supabase/local/.mail/ để test đọc đường link. Không gửi email thật.
 import net from "node:net";
 import { mkdirSync, writeFileSync } from "node:fs";
 
@@ -33,11 +33,20 @@ net
         const line = buffer.slice(0, eol);
         buffer = buffer.slice(eol + 2);
         const cmd = line.slice(0, 4).toUpperCase();
-        if (cmd === "EHLO" || cmd === "HELO") socket.write("250-local\r\n250 8BITMIME\r\n");
-        else if (cmd === "RCPT") (message.to.push(line.replace(/^RCPT TO:\s*/i, "").replace(/[<>]/g, "")), socket.write("250 ok\r\n"));
-        else if (cmd === "DATA") ((inData = true), socket.write("354 go ahead\r\n"));
-        else if (cmd === "QUIT") (socket.write("221 bye\r\n"), socket.end());
-        else socket.write("250 ok\r\n");
+        if (cmd === "EHLO" || cmd === "HELO") {
+          socket.write("250-local\r\n250 8BITMIME\r\n");
+        } else if (cmd === "RCPT") {
+          message.to.push(line.replace(/^RCPT TO:\s*/i, "").replace(/[<>]/g, ""));
+          socket.write("250 ok\r\n");
+        } else if (cmd === "DATA") {
+          inData = true;
+          socket.write("354 go ahead\r\n");
+        } else if (cmd === "QUIT") {
+          socket.write("221 bye\r\n");
+          socket.end();
+        } else {
+          socket.write("250 ok\r\n");
+        }
       }
     });
     socket.on("error", () => {});

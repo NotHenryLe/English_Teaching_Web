@@ -29,6 +29,17 @@ const AuthContext = createContext<AuthState>({
 
 export const useAuth = () => useContext(AuthContext);
 
+async function fetchProfile(id: string): Promise<Profile | null> {
+  const db = getSupabase();
+  if (!db) return null;
+  try {
+    const { data } = await db.from("profiles").select("*").eq("id", id).maybeSingle();
+    return (data as Profile | null) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -49,24 +60,19 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const userId = user?.id ?? null;
 
-  const loadProfile = useCallback(async (id: string) => {
-    const db = getSupabase();
-    if (!db) return;
-    try {
-      const { data } = await db.from("profiles").select("*").eq("id", id).maybeSingle();
-      setProfile((data as Profile | null) ?? null);
-    } catch {
-      setProfile(null);
-    } finally {
-      // Dù lỗi mạng vẫn đánh dấu "đã thử" để các trang không treo ở trạng thái đang tải.
-      setProfileFor(id);
-    }
-  }, []);
-
   useEffect(() => {
     if (!userId) return;
-    void loadProfile(userId);
-  }, [userId, loadProfile]);
+    let cancelled = false;
+    void fetchProfile(userId).then((loaded) => {
+      if (cancelled) return;
+      // Dù lỗi mạng (loaded = null) vẫn đánh dấu "đã thử" để các trang không treo ở trạng thái đang tải.
+      setProfile(loaded);
+      setProfileFor(userId);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   const value = useMemo<AuthState>(
     () => ({
@@ -74,7 +80,9 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       profile: userId && profileFor === userId ? profile : null,
       refreshProfile: async () => {
-        if (userId) await loadProfile(userId);
+        if (!userId) return;
+        setProfile(await fetchProfile(userId));
+        setProfileFor(userId);
       },
       signOut: async () => {
         await getSupabase()?.auth.signOut();
@@ -82,7 +90,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(null);
       },
     }),
-    [sessionKnown, user, userId, profile, profileFor, loadProfile],
+    [sessionKnown, user, userId, profile, profileFor],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

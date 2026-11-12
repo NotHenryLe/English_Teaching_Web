@@ -20,7 +20,7 @@ writeFileSync(
     `SERVICE_ROLE_KEY=${sign("service_role")}`,
     `SITE_URL=${process.env.SITE_URL ?? "http://localhost:3000"}`,
     `MAILER_AUTOCONFIRM=${process.env.MAILER_AUTOCONFIRM ?? "false"}`,
-    `SMTP_HOST=host.docker.internal`,
+    `SMTP_HOST=mail`,
     `SMTP_PORT=54325`,
     "",
   ].join("\n"),
