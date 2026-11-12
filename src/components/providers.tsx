@@ -97,7 +97,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           } catch {
             // localStorage bị chặn: không có phiên nào được lưu để xóa.
           }
-          window.location.assign("/");
+          window.location.reload();
           return;
         }
         setUser(null);

@@ -2,7 +2,7 @@
 
 import { ExternalLink, ListOrdered, Pencil, Plus, Trash2, Upload } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { FIXED_OPTIONS, SKILL_LABEL, splitOption } from "@/lib/ielts";
 import type { IeltsAnswerKey, IeltsContent, IeltsGroupKind, IeltsSkill, IeltsTest, IeltsTestSummary, TranscriptLine } from "@/lib/types";
 import { EmptyState, Modal, Notice, Spinner, safeUrl } from "../ui";
@@ -182,6 +182,8 @@ function renumber(draft: IeltsDraft): IeltsDraft {
 
 const maxNumber = (draft: IeltsDraft) => Math.max(0, ...draft.sections.flatMap((section) => section.groups.flatMap((group) => group.questions.map((question) => question.n))));
 
+const questionCount = (draft: IeltsDraft) => draft.sections.reduce((sum, section) => sum + section.groups.reduce((inner, group) => inner + group.questions.length, 0), 0);
+
 const newSection = (skill: IeltsSkill, index: number): SectionDraft => ({
   title: skill === "reading" ? `Reading Passage ${index + 1}` : `Part ${index + 1}`,
   instructions: "",
@@ -199,6 +201,7 @@ export function IeltsAdmin() {
   const { busy, run } = useAction();
   const [draft, setDraft] = useState<IeltsDraft | null>(null);
   const [problem, setProblem] = useState("");
+  const formId = useId();
 
   if (tests.error && !tests.data) return <Notice kind="bad">{tests.error}</Notice>;
   if (!tests.data) return <Spinner />;
@@ -331,8 +334,30 @@ export function IeltsAdmin() {
       )}
 
       {draft ? (
-        <Modal open onClose={() => setDraft(null)} title={draft.id ? `Sửa đề: ${draft.title}` : `Đề ${SKILL_LABEL[draft.skill]} mới`} wide>
+        <Modal
+          open
+          onClose={() => setDraft(null)}
+          title={draft.id ? `Sửa đề: ${draft.title}` : `Đề ${SKILL_LABEL[draft.skill]} mới`}
+          wide
+          footer={
+            <div className="grid gap-3">
+              {problem ? <Notice kind="bad">{problem}</Notice> : null}
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm text-muted">{questionCount(draft)} câu hỏi</span>
+                <span className="flex gap-2">
+                  <button type="button" className="btn btn-outline" onClick={() => setDraft(null)}>
+                    Đóng
+                  </button>
+                  <button type="submit" form={formId} className="btn btn-primary" disabled={busy}>
+                    {busy ? "Đang lưu…" : "Lưu đề thi"}
+                  </button>
+                </span>
+              </div>
+            </div>
+          }
+        >
           <form
+            id={formId}
             className="grid gap-6"
             noValidate
             onSubmit={(event) => {
@@ -489,18 +514,6 @@ export function IeltsAdmin() {
 
             <Toggle checked={draft.published} onChange={(published) => setDraft({ ...draft, published })} label="Xuất bản (người học nhìn thấy)" />
 
-            {problem ? <Notice kind="bad">{problem}</Notice> : null}
-            <div className="sticky bottom-0 -mx-5 -mb-5 flex items-center justify-between gap-2 border-t border-line bg-white px-5 py-3 sm:-mx-6 sm:-mb-6 sm:px-6">
-              <span className="text-sm text-muted">{maxNumber(draft) ? `${draft.sections.reduce((sum, section) => sum + section.groups.reduce((inner, group) => inner + group.questions.length, 0), 0)} câu hỏi` : ""}</span>
-              <span className="flex gap-2">
-                <button type="button" className="btn btn-outline" onClick={() => setDraft(null)}>
-                  Đóng
-                </button>
-                <button type="submit" className="btn btn-primary" disabled={busy}>
-                  {busy ? "Đang lưu…" : "Lưu đề thi"}
-                </button>
-              </span>
-            </div>
           </form>
         </Modal>
       ) : null}

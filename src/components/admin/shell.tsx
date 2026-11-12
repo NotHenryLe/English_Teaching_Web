@@ -24,7 +24,7 @@ export function StaffShell({ need, active, title, children }: { need: "staff" | 
   return (
     <RequireAuth need={need}>
       <div className="container-page py-8">
-        <div className="grid gap-6 lg:grid-cols-[13.5rem_1fr]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[13.5rem_minmax(0,1fr)]">
           <StaffNav active={active} />
           <div className="min-w-0">
             <h1 className="mb-5 text-2xl font-extrabold tracking-tight sm:text-3xl">{title}</h1>
@@ -42,7 +42,7 @@ function StaffNav({ active }: { active: string }) {
   const links = LINKS.filter((link) => !link.adminOnly || isAdmin);
   const groups = [...new Set(links.map((link) => link.group))];
   return (
-    <nav aria-label="Khu vực quản trị" className="lg:sticky lg:top-24 lg:self-start">
+    <nav aria-label="Khu vực quản trị" className="min-w-0 lg:sticky lg:top-24 lg:self-start">
       <div className="flex gap-1.5 overflow-x-auto pb-2 lg:block lg:overflow-visible lg:pb-0">
         {groups.map((group) => (
           <div key={group} className="contents lg:mb-4 lg:block">

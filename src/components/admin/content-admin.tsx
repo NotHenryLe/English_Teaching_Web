@@ -2,7 +2,7 @@
 
 import { ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { Tense, TenseExercise, TenseFormula, TenseUsage, TimeGroup, VocabTopic, VocabWord } from "@/lib/types";
 import { EmptyState, Modal, Notice, SpeakButton, Spinner, cx } from "../ui";
 import { ArrayEditor, TextField, Toggle, check, linesOf, slugify, useAction, useLoad } from "./common";
@@ -50,7 +50,7 @@ export function VocabAdmin() {
   return (
     <div>
       <PublishNote />
-      <div className="grid gap-5 lg:grid-cols-[17rem_1fr]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[17rem_minmax(0,1fr)]">
         <aside>
           <button type="button" className="btn btn-primary btn-sm mb-3 w-full" onClick={() => setEditingTopic({ ...NEW_TOPIC, sort_order: topics.data!.length + 1 })}>
             <Plus size={16} aria-hidden /> Thêm chủ đề
@@ -364,6 +364,7 @@ export function TensesAdmin() {
   const { busy, run } = useAction();
   const [draft, setDraft] = useState<TenseDraft | null>(null);
   const [problem, setProblem] = useState("");
+  const formId = useId();
 
   if (tenses.error && !tenses.data) return <Notice kind="bad">{tenses.error}</Notice>;
   if (!tenses.data) return <Spinner />;
@@ -517,8 +518,27 @@ export function TensesAdmin() {
       </div>
 
       {draft ? (
-        <Modal open onClose={() => setDraft(null)} title={draft.id ? `Sửa bài: ${draft.name_vi}` : "Thêm bài học"} wide>
+        <Modal
+          open
+          onClose={() => setDraft(null)}
+          title={draft.id ? `Sửa bài: ${draft.name_vi}` : "Thêm bài học"}
+          wide
+          footer={
+            <div className="grid gap-3">
+              {problem ? <Notice kind="bad">{problem}</Notice> : null}
+              <div className="flex justify-end gap-2">
+                <button type="button" className="btn btn-outline" onClick={() => setDraft(null)}>
+                  Đóng
+                </button>
+                <button type="submit" form={formId} className="btn btn-primary" disabled={busy}>
+                  {busy ? "Đang lưu…" : "Lưu bài học"}
+                </button>
+              </div>
+            </div>
+          }
+        >
           <form
+            id={formId}
             className="grid gap-6"
             noValidate
             onSubmit={(event) => {
@@ -640,15 +660,6 @@ export function TensesAdmin() {
               </div>
             </div>
 
-            {problem ? <Notice kind="bad">{problem}</Notice> : null}
-            <div className="sticky bottom-0 -mx-5 -mb-5 flex justify-end gap-2 border-t border-line bg-white px-5 py-3 sm:-mx-6 sm:-mb-6 sm:px-6">
-              <button type="button" className="btn btn-outline" onClick={() => setDraft(null)}>
-                Đóng
-              </button>
-              <button type="submit" className="btn btn-primary" disabled={busy}>
-                {busy ? "Đang lưu…" : "Lưu bài học"}
-              </button>
-            </div>
           </form>
         </Modal>
       ) : null}

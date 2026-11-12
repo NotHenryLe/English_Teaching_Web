@@ -644,6 +644,36 @@ describe("lớp Callan: đăng ký → chuyển khoản → admin duyệt → l�
   });
 });
 
+describe("khu quản trị trên điện thoại", () => {
+  test("các trang quản trị, giáo viên và tài khoản không bị tràn ngang ở màn hình 375px", async () => {
+    const page = await newPage({ viewport: { width: 375, height: 740 }, hasTouch: true, isMobile: true });
+    await login(page, "admin", "/quan-tri");
+    const urls = ["/quan-tri", "/quan-tri/dang-ky", "/quan-tri/lop-hoc", "/quan-tri/goi-hoc", "/quan-tri/ket-qua", "/quan-tri/tu-vung", "/quan-tri/ngu-phap", "/quan-tri/ielts", "/quan-tri/nguoi-dung", "/quan-tri/cai-dat", "/giao-vien", "/tai-khoan"];
+    for (const url of urls) {
+      await page.goto(`${BASE}${url}`);
+      await page.getByRole("heading", { level: 1 }).waitFor();
+      await page.waitForLoadState("networkidle");
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      assert.ok(overflow <= 1, `${url} tràn ngang ${overflow}px`);
+    }
+    // Đơn đã duyệt hiện đủ các nút thao tác trong khung nhìn.
+    await page.goto(`${BASE}/quan-tri/dang-ky`);
+    await page.getByRole("tab", { name: /Đã duyệt \(/ }).click();
+    const button = page.getByRole("button", { name: "Hủy duyệt" }).first();
+    await button.waitFor();
+    const box = await button.boundingBox();
+    assert.ok(box.x >= 0 && box.x + box.width <= 375, "nút thao tác nằm ngoài màn hình");
+    // Hộp thoại soạn bài mở được và nút lưu nằm trong màn hình.
+    await page.goto(`${BASE}/quan-tri/ngu-phap`);
+    await page.getByRole("row", { name: /Quá khứ đơn/ }).getByRole("button", { name: "Sửa" }).click();
+    const save = page.getByRole("dialog").getByRole("button", { name: "Lưu bài học" });
+    await save.waitFor();
+    const saveBox = await save.boundingBox();
+    assert.ok(saveBox.x >= 0 && saveBox.x + saveBox.width <= 375 && saveBox.y + saveBox.height <= 740, "nút lưu của hộp thoại nằm ngoài màn hình");
+    await page.context().close();
+  });
+});
+
 describe("soạn nội dung", () => {
   test("giáo viên thêm chủ đề + từ mới: người học xem được ngay ở đường dẫn mới (trang dự phòng)", async () => {
     const page = await newPage();

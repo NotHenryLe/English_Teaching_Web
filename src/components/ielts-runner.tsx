@@ -666,7 +666,7 @@ function QuestionInput({
             autoCapitalize="none"
             spellCheck={false}
             aria-label={`Đáp án câu ${question.n}`}
-            className="input mx-1 inline-block !min-h-9 !w-40 !py-1 align-baseline"
+            className="input mx-1 inline-block !min-h-9 !w-36 !py-1 align-baseline sm:!w-40"
           />
           {after}
         </span>

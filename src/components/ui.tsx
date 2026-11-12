@@ -175,12 +175,15 @@ export function Modal({
   onClose,
   title,
   children,
+  footer,
   wide = false,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  /** Thanh nút cố định ở đáy hộp thoại (không cuộn theo nội dung) — dùng cho biểu mẫu dài. */
+  footer?: React.ReactNode;
   wide?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -204,14 +207,15 @@ export function Modal({
       )}
     >
       {open ? (
-        <div className="max-h-[85vh] overflow-y-auto p-5 sm:p-6">
-          <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="flex max-h-[85vh] flex-col">
+          <div className="flex items-start justify-between gap-4 px-5 pt-5 sm:px-6 sm:pt-6">
             <h2 className="text-xl font-bold">{title}</h2>
             <button type="button" onClick={onClose} className="btn btn-ghost btn-sm -mr-2 -mt-1" aria-label="Đóng">
               ✕
             </button>
           </div>
-          {children}
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5 sm:px-6 sm:pb-6">{children}</div>
+          {footer ? <div className="border-t border-line px-5 py-3 sm:px-6">{footer}</div> : null}
         </div>
       ) : null}
     </dialog>
